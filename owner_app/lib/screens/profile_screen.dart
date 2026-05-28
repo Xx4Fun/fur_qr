@@ -62,13 +62,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final fileName = '${user.id}_${DateTime.now().millisecondsSinceEpoch}.$fileExt';
       final filePath = '${user.id}/$fileName';
 
-      await Supabase.instance.client.storage.from('avatars').uploadBinary(
+      await Supabase.instance.client.storage.from('pet_avatars').uploadBinary(
             filePath,
             bytes,
             fileOptions: FileOptions(contentType: 'image/$fileExt'),
           );
 
-      final imageUrl = Supabase.instance.client.storage.from('avatars').getPublicUrl(filePath);
+      final imageUrl = Supabase.instance.client.storage.from('pet_avatars').getPublicUrl(filePath);
 
       await Supabase.instance.client.from('owners').update({
         'avatar_url': imageUrl,
