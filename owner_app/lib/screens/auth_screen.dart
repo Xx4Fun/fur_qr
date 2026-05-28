@@ -66,6 +66,21 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
+  Future<void> _submitGoogle() async {
+    setState(() => _isLoading = true);
+    try {
+      await SupabaseService.instance.signInWithGoogle();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   InputDecoration _inputDecoration(String hint, IconData icon) {
     return InputDecoration(
       hintText: hint,
@@ -307,7 +322,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           children: [
                             Expanded(
                               child: OutlinedButton.icon(
-                                onPressed: () {},
+                                onPressed: _isLoading ? null : _submitGoogle,
                                 icon: Image.network('https://developers.google.com/identity/images/g-logo.png', height: 20), // Placeholder
                                 label: const Text('Google', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w600)),
                                 style: OutlinedButton.styleFrom(
