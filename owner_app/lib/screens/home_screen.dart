@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/pet.dart';
@@ -274,7 +275,11 @@ class _HomeScreenState extends State<HomeScreen> {
     final List<Widget> leftContent = [
       Text(
         "Hello, $_ownerName!",
-        style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800, color: Colors.black87),
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 32,
+          fontWeight: FontWeight.w800,
+          color: const Color(0xFF0F172A),
+        ),
       ),
       const SizedBox(height: 4),
       Text(
@@ -395,11 +400,11 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: const Color(0xFFF9FAFB),
       appBar: isWide
           ? null
           : AppBar(
-              backgroundColor: Colors.white,
+              backgroundColor: const Color(0xFFF9FAFB),
               elevation: 0,
               title: FittedBox(
                 fit: BoxFit.scaleDown,

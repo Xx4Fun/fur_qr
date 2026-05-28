@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../main.dart';
 import '../models/pet.dart';
 import 'add_pet_screen.dart';
@@ -446,14 +447,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isWide = ResponsiveLayout.isWide(context);
-
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: const Color(0xFFF9FAFB),
       appBar: _isDeleteMode
           ? AppBar(
-              backgroundColor: Colors.white,
+              backgroundColor: const Color(0xFFF9FAFB),
               elevation: 0,
+              scrolledUnderElevation: 0,
               leading: IconButton(
                 icon: const Icon(Icons.close, color: Colors.black87),
                 onPressed: () {
@@ -465,7 +465,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               title: Text(
                 'Remove Companions (${_selectedPetIds.length})',
-                style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 18),
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF0F172A),
+                ),
               ),
               actions: [
                 TextButton(
@@ -480,33 +484,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   },
                   child: Text(
                     _selectedPetIds.length == _pets.length ? 'Deselect All' : 'Select All',
-                    style: const TextStyle(color: Color(0xFF0047CC), fontWeight: FontWeight.bold),
+                    style: GoogleFonts.plusJakartaSans(
+                      color: const Color(0xFF1D4ED8),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
             )
-          : (isWide
-              ? null
-              : AppBar(
-                  backgroundColor: Colors.white,
-                  elevation: 0,
-                  title: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.pets, color: Color(0xFF0047CC)),
-                        const SizedBox(width: 8),
-                        const Text(
-                          'PawTrace',
-                          style: TextStyle(color: Color(0xFF0047CC), fontWeight: FontWeight.bold, fontSize: 18),
-                        ),
-                      ],
+          : AppBar(
+              automaticallyImplyLeading: false,
+              backgroundColor: const Color(0xFFF9FAFB),
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              title: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Your Companions',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF0F172A),
+                      ),
                     ),
-                  ),
-                  centerTitle: true,
-                )),
+                  ],
+                ),
+              ),
+            ),
       body: GestureDetector(
         onTap: _isMenuOpen
             ? () {
@@ -521,19 +528,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 onRefresh: _loadPets,
                 child: CustomScrollView(
                   slivers: [
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                          left: 20.0,
-                          right: 20.0,
-                          top: isWide ? 40.0 : 24.0,
-                          bottom: 16.0,
-                        ),
-                        child: Text(
-                          _isDeleteMode ? "Remove Companions" : "Your Companions",
-                          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: Colors.black87),
-                        ),
-                      ),
+                    const SliverToBoxAdapter(
+                      child: SizedBox(height: 16),
                     ),
                     if (_pets.isEmpty)
                       SliverFillRemaining(
