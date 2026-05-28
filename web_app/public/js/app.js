@@ -235,39 +235,172 @@ document.addEventListener('DOMContentLoaded', async () => {
         const btnSendMessage = document.getElementById('btn-send-message');
         const chatMessages = document.getElementById('chat-messages');
 
+        let activeConversation = null;
+        let realtimeSubscription = null;
+
+        // Generate or retrieve finder_session_id
+        let finderSessionId = localStorage.getItem('finder_session_id');
+        if (!finderSessionId) {
+            finderSessionId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+            localStorage.setItem('finder_session_id', finderSessionId);
+        }
+
         // Open Modal
-        btnMessageOwner.addEventListener('click', () => {
+        btnMessageOwner.addEventListener('click', async () => {
             chatModal.classList.remove('hidden');
             chatInput.focus();
-            scrollToBottom();
+            
+            // Show loading placeholder
+            chatMessages.innerHTML = `
+                <div class="text-center my-4" id="chat-loading">
+                    <span class="text-xs text-slate-400 font-semibold">Connecting securely to owner...</span>
+                </div>
+            `;
+
+            try {
+                // 1. Check if active conversation exists
+                const { data: convs, error: fetchErr } = await supabaseClient
+                    .from('conversations')
+                    .select('id, is_active')
+                    .eq('tag_id', tagId)
+                    .eq('finder_session_id', finderSessionId);
+
+                if (fetchErr) throw fetchErr;
+
+                activeConversation = convs ? convs.find(c => c.is_active) : null;
+
+                // 2. If no active conversation, create one
+                if (!activeConversation) {
+                    const { data: newConv, error: createErr } = await supabaseClient
+                        .from('conversations')
+                        .insert({
+                            tag_id: tagId,
+                            finder_session_id: finderSessionId,
+                            is_active: true
+                        })
+                        .select()
+                        .single();
+
+                    if (createErr) throw createErr;
+                    activeConversation = newConv;
+                }
+
+                // 3. Fetch past messages
+                const { data: pastMessages, error: msgErr } = await supabaseClient
+                    .from('messages')
+                    .select('*')
+                    .eq('conversation_id', activeConversation.id)
+                    .order('created_at', { ascending: true });
+
+                if (msgErr) throw msgErr;
+
+                // Clear loading status
+                chatMessages.innerHTML = `
+                    <div class="text-center my-2">
+                        <span class="text-[10px] bg-slate-200/60 text-slate-500 font-bold px-3 py-1 rounded-full uppercase tracking-wider">Connection Secure</span>
+                    </div>
+                `;
+
+                // Render existing messages
+                if (pastMessages && pastMessages.length > 0) {
+                    pastMessages.forEach(m => {
+                        appendMessage(m.sender, m.content, m.id);
+                    });
+                } else {
+                    // Initial Welcome message
+                    appendMessage('owner', `Hello! Thank you so much for scanning the tag. Did you find my pet? Where are they now?`);
+                }
+
+                scrollToBottom();
+
+                // 4. Initialize Realtime subscription
+                if (realtimeSubscription) {
+                    realtimeSubscription.unsubscribe();
+                }
+
+                realtimeSubscription = supabaseClient
+                    .channel(`chat-room-${activeConversation.id}`)
+                    .on('postgres_changes', {
+                        event: 'INSERT',
+                        schema: 'public',
+                        table: 'messages',
+                        filter: `conversation_id=eq.${activeConversation.id}`
+                    }, payload => {
+                        const newMsg = payload.new;
+                        // Avoid double-rendering
+                        if (!document.getElementById(`msg-${newMsg.id}`)) {
+                            appendMessage(newMsg.sender, newMsg.content, newMsg.id);
+                            scrollToBottom();
+                        }
+                    })
+                    .subscribe();
+
+            } catch (err) {
+                console.error("Chat error:", err);
+                chatMessages.innerHTML = `
+                    <div class="text-center my-4 text-red-500 font-semibold text-sm">
+                        Unable to establish connection. Please try again.
+                    </div>
+                `;
+            }
         });
 
         // Close Modal
         btnCloseChat.addEventListener('click', () => {
             chatModal.classList.add('hidden');
+            if (realtimeSubscription) {
+                realtimeSubscription.unsubscribe();
+                realtimeSubscription = null;
+            }
         });
 
         // Send Message Handler
-        const handleSendMessage = () => {
+        const handleSendMessage = async () => {
             const text = chatInput.value.trim();
-            if (text === '') return;
+            if (text === '' || !activeConversation) return;
 
-            // 1. Append Finder Message
-            appendMessage('finder', text);
             chatInput.value = '';
-            scrollToBottom();
+            
+            // Check if this is the first message (only default welcome exists)
+            const isFirstUserMessage = chatMessages.querySelectorAll('[id^="msg-"]').length === 0;
 
-            // 2. Trigger Typing Indicator
-            showTypingIndicator();
-            scrollToBottom();
-
-            // 3. Receive Mock Owner Message after 1.5s delay
-            setTimeout(() => {
-                removeTypingIndicator();
-                const ownerResponse = `Thank you so much! I have received your location scan and am headed your way. Please keep ${currentPet.name || 'my pet'} safe!`;
-                appendMessage('owner', ownerResponse);
+            try {
+                // Generate a client-side temporary message ID to append instantly
+                const tempId = 'temp-' + Date.now();
+                appendMessage('finder', text, tempId);
                 scrollToBottom();
-            }, 1500);
+
+                // Insert into Supabase
+                const { data, error } = await supabaseClient
+                    .from('messages')
+                    .insert({
+                        conversation_id: activeConversation.id,
+                        sender: 'finder',
+                        content: text
+                    })
+                    .select()
+                    .single();
+
+                if (error) throw error;
+
+                // Replace the temporary ID element with the real database message ID
+                const tempEl = document.getElementById(`msg-${tempId}`);
+                if (tempEl) {
+                    tempEl.id = `msg-${data.id}`;
+                }
+
+                // If it is the first finder message, push notification to the owner's phone via notify-owner function
+                if (isFirstUserMessage) {
+                    notifyOwnerApi(tagId, null, null);
+                }
+
+            } catch (err) {
+                console.error("Error sending message:", err);
+                alert("Failed to send message. Please try again.");
+            }
         };
 
         btnSendMessage.addEventListener('click', handleSendMessage);
@@ -277,8 +410,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
 
-        function appendMessage(sender, text) {
+        function appendMessage(sender, text, id) {
             const msgDiv = document.createElement('div');
+            msgDiv.id = id ? `msg-${id}` : '';
+            
             if (sender === 'finder') {
                 msgDiv.className = "flex items-start gap-2.5 max-w-[85%] self-end flex-row-reverse";
                 msgDiv.innerHTML = `
@@ -299,33 +434,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 `;
             }
             chatMessages.appendChild(msgDiv);
-        }
-
-        let typingIndicatorDiv = null;
-
-        function showTypingIndicator() {
-            if (typingIndicatorDiv) return;
-            typingIndicatorDiv = document.createElement('div');
-            typingIndicatorDiv.className = "flex items-start gap-2.5 max-w-[85%] animate-pulse";
-            typingIndicatorDiv.innerHTML = `
-                <div class="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
-                    <img src="${owner?.avatar_url || ''}" alt="Owner" class="owner-photo w-full h-full object-cover ${owner?.avatar_url ? '' : 'hidden'}">
-                    <svg class="owner-no-photo w-full h-full text-gray-400 p-1.5 ${owner?.avatar_url ? 'hidden' : ''}" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                </div>
-                <div class="bg-white border border-gray-100 rounded-2xl rounded-tl-none px-4 py-3 shadow-sm text-sm text-slate-400 font-bold tracking-widest flex items-center gap-1">
-                    <span class="animate-bounce">.</span>
-                    <span class="animate-bounce" style="animation-delay: 0.2s">.</span>
-                    <span class="animate-bounce" style="animation-delay: 0.4s">.</span>
-                </div>
-            `;
-            chatMessages.appendChild(typingIndicatorDiv);
-        }
-
-        function removeTypingIndicator() {
-            if (typingIndicatorDiv) {
-                chatMessages.removeChild(typingIndicatorDiv);
-                typingIndicatorDiv = null;
-            }
         }
 
         function scrollToBottom() {

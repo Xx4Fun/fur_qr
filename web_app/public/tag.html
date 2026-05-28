@@ -234,9 +234,9 @@
         </div>
     </main>
 
-    <!-- Premium Direct Chat Mockup Modal -->
-    <div id="chat-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl flex flex-col h-[520px] max-h-[85vh] animate-in fade-in zoom-in-95 duration-200">
+    <!-- Premium Direct Chat Mockup Modal (Full screen on mobile, overlay on desktop) -->
+    <div id="chat-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-0 md:p-4">
+        <div class="bg-white w-full md:max-w-md rounded-none md:rounded-3xl overflow-hidden shadow-2xl flex flex-col h-full md:h-[520px] md:max-h-[85vh] animate-in fade-in zoom-in-95 duration-200">
             <!-- Modal Header -->
             <div class="bg-gradient-to-r from-blue-700 to-indigo-800 p-4 text-white flex items-center justify-between">
                 <div class="flex items-center gap-3">

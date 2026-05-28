@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'dashboard_screen.dart'; // The real My Pets screen with the new UI
+import 'chats_screen.dart';
 import 'alerts_screen.dart';
 import 'profile_screen.dart';
 import '../widgets/responsive_layout.dart';
@@ -19,6 +20,7 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
   final List<Widget> _pages = [
     const HomeScreen(),
     const DashboardScreen(), // Using the real connected screen
+    const ChatsScreen(),
     const AlertsScreen(),
     const ProfileScreen(),
   ];
@@ -69,13 +71,20 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
                 _buildSidebarItem(
                   context: context,
                   index: 2,
+                  icon: Icons.chat_bubble_outline_rounded,
+                  selectedIcon: Icons.chat_bubble_rounded,
+                  label: 'Chats',
+                ),
+                _buildSidebarItem(
+                  context: context,
+                  index: 3,
                   icon: Icons.notifications_none,
                   selectedIcon: Icons.notifications,
                   label: 'Alerts',
                 ),
                 _buildSidebarItem(
                   context: context,
-                  index: 3,
+                  index: 4,
                   icon: Icons.person_outline,
                   selectedIcon: Icons.person,
                   label: 'Profile',
@@ -143,6 +152,11 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
                   icon: Icon(Icons.pets_outlined),
                   selectedIcon: Icon(Icons.pets),
                   label: 'My Pets',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.chat_bubble_outline_rounded),
+                  selectedIcon: Icon(Icons.chat_bubble_rounded),
+                  label: 'Chats',
                 ),
                 NavigationDestination(
                   icon: Icon(Icons.notifications_none),
