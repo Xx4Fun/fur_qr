@@ -1,0 +1,5 @@
+// Initialize Supabase Client
+const SUPABASE_URL = 'https://lioqpvbitlobracvkttp.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxpb3FwdmJpdGxvYnJhY3ZrdHRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NDUyNzYsImV4cCI6MjA5NTEyMTI3Nn0.7P3aGsYA7i8jU6xFzmZnmgVj_Acj0YD-JGSK9KeTCk8';
+
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
