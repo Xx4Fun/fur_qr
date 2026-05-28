@@ -116,7 +116,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               'Conversation resolved! Glad ${widget.petName} is safe.',
               style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
             ),
-            backgroundColor: Colors.emerald,
+            backgroundColor: const Color(0xFF10B981),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
@@ -151,12 +151,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Color(0xFF0F172A)),
-        border: const Border(
+        shape: const Border(
           bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.check_circle_outline_rounded, color: Colors.emerald),
+            icon: const Icon(Icons.check_circle_outline_rounded, color: Color(0xFF10B981)),
             tooltip: 'Mark as Found',
             onPressed: _resolveFromDetail,
           ),

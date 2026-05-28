@@ -99,7 +99,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
               'Conversation resolved! Glad $petName is safe.',
               style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
             ),
-            backgroundColor: Colors.emerald,
+            backgroundColor: const Color(0xFF10B981),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
@@ -339,7 +339,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
                                         value: 'resolve',
                                         child: Row(
                                           children: [
-                                            const Icon(Icons.check_circle_outline, color: Colors.emerald),
+                                            const Icon(Icons.check_circle_outline, color: Color(0xFF10B981)),
                                             const SizedBox(width: 8),
                                             Text(
                                               'Mark as Found',
