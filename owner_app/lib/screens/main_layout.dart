@@ -6,6 +6,7 @@ import 'alerts_screen.dart';
 import 'profile_screen.dart';
 import '../widgets/responsive_layout.dart';
 import '../services/supabase_service.dart';
+import '../services/fcm_service.dart';
 
 class MainLayoutScreen extends StatefulWidget {
   const MainLayoutScreen({super.key});
@@ -16,6 +17,12 @@ class MainLayoutScreen extends StatefulWidget {
 
 class _MainLayoutScreenState extends State<MainLayoutScreen> {
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    FCMService.instance.init();
+  }
 
   final List<Widget> _pages = [
     const HomeScreen(),
