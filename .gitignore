@@ -1,0 +1,9 @@
+.gemini/
+.antigravitycli/
+.mcp.json
+web_app/check_is_read.js
+web_app/list_all_data.js
+web_app/test_relation.js
+web_app/test_tags.js
+web_app/check_tables.js
+web_app/node_modules/

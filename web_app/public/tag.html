@@ -3,67 +3,291 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Found a Pet?</title>
+    <title>Pet Found! - PawTrace</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-shadow {
+            box-shadow: 0 10px 30px -10px rgba(0, 71, 204, 0.08);
+        }
+    </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-    <div class="max-w-md mx-auto bg-white min-h-screen shadow-lg relative">
-        
+<body class="bg-[#F8FAFC] min-h-screen text-[#0F172A] font-sans antialiased">
+    <!-- Top Nav -->
+    <header class="bg-white px-6 py-4 flex items-center justify-between sticky top-0 z-20 border-b border-gray-100/80">
+        <button onclick="window.history.back()" class="text-gray-600 hover:text-gray-900 transition p-1.5 hover:bg-gray-50 rounded-lg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        </button>
+        <h1 class="text-lg font-bold text-gray-900 flex-grow text-center pr-9">Pet Found!</h1>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="max-w-6xl mx-auto px-4 py-6 md:py-10">
         <!-- Loading State -->
-        <div id="loading" class="absolute inset-0 flex flex-col items-center justify-center bg-white z-50">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-deep-purple-500 mb-4 border-indigo-600"></div>
-            <p class="text-gray-500 font-medium">Loading pet details...</p>
+        <div id="loading" class="fixed inset-0 flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm z-50">
+            <div class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-100 border-t-indigo-600 mb-4"></div>
+            <p class="text-gray-500 font-semibold">Retrieving pet secure profile...</p>
         </div>
 
         <!-- Error State -->
-        <div id="error-state" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-white z-50 p-6 text-center">
-            <svg class="w-16 h-16 text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            <h2 class="text-xl font-bold text-gray-800 mb-2">Tag Not Found</h2>
-            <p id="error-message" class="text-gray-600">This tag is invalid or inactive.</p>
+        <div id="error-state" class="hidden fixed inset-0 flex flex-col items-center justify-center bg-[#F8FAFC] z-50 p-6 text-center">
+            <div class="bg-white p-8 rounded-3xl border border-gray-100 custom-shadow max-w-md w-full">
+                <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                </div>
+                <h2 class="text-2xl font-extrabold text-gray-800 mb-2">Tag Not Found</h2>
+                <p id="error-message" class="text-gray-600 mb-6">This tag is invalid or inactive.</p>
+                <button onclick="location.reload()" class="w-full bg-[#0047CC] text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition">Try Again</button>
+            </div>
         </div>
 
-        <!-- Content State -->
-        <div id="content" class="hidden flex flex-col h-full">
-            <!-- Header Image -->
-            <div class="w-full h-64 bg-gray-200 relative">
-                <img id="pet-photo" src="" alt="Pet Photo" class="w-full h-full object-cover hidden">
-                <div id="no-photo" class="absolute inset-0 flex items-center justify-center bg-indigo-100 hidden">
-                    <svg class="w-20 h-20 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.514M14 10l-2 2"></path></svg>
+        <!-- Main responsive layout -->
+        <div id="main-grid" class="hidden grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+            
+            <!-- LEFT COLUMN: Pet Photo & Basic Identity (Sticky on Desktop) -->
+            <div class="md:col-span-5 md:sticky md:top-24 flex flex-col gap-6">
+                <!-- Portrait Card -->
+                <div class="bg-white border border-gray-100 rounded-3xl overflow-hidden custom-shadow p-3">
+                    <div class="w-full aspect-[4/3] sm:aspect-square md:aspect-[4/3] lg:aspect-square bg-gray-50 relative rounded-2xl overflow-hidden">
+                        <img id="pet-photo" src="" alt="Pet Photo" class="w-full h-full object-cover hidden">
+                        <div id="no-photo" class="absolute inset-0 flex flex-col items-center justify-center bg-indigo-50/50 text-indigo-300 hidden">
+                            <svg class="w-20 h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            <span class="text-xs font-semibold text-indigo-400 mt-2">No photo available</span>
+                        </div>
+                        <!-- Lost Badge -->
+                        <div class="absolute top-4 left-4 bg-[#FF7A1A] text-white text-xs sm:text-sm font-bold px-4 py-2 rounded-full shadow-lg flex items-center gap-1.5">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                            I am Lost - Please Help!
+                        </div>
+                    </div>
+
+                    <!-- Pet Name & Location Info -->
+                    <div class="px-3 py-5">
+                        <h1 id="pet-name" class="text-4xl font-extrabold text-gray-900 tracking-tight">Buddy</h1>
+                        <div class="flex items-center text-gray-500 mt-2 font-medium">
+                            <svg class="w-5 h-5 mr-1 text-[#0047CC]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            <span id="pet-location">Location pending...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Desktop Owner Card (Visible only on md+) -->
+                <div class="owner-info-card hidden md:flex bg-white border border-gray-100 rounded-3xl p-5 custom-shadow items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 rounded-full bg-gray-100 overflow-hidden border border-gray-200 flex-shrink-0">
+                            <img src="" alt="Owner" class="owner-photo w-full h-full object-cover hidden">
+                            <svg class="owner-no-photo w-full h-full text-gray-400 p-2.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                        </div>
+                        <div>
+                            <h4 class="owner-name font-bold text-gray-900 text-lg">Loading...</h4>
+                            <p class="text-xs text-gray-500 font-semibold tracking-wide uppercase">Primary Owner</p>
+                        </div>
+                    </div>
+                    <a href="#" class="btn-call-owner-icon w-12 h-12 rounded-2xl bg-gray-50 hover:bg-gray-100 border border-gray-100 flex items-center justify-center text-[#0047CC] transition shadow-sm">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                    </a>
                 </div>
             </div>
 
-            <!-- Pet Info -->
-            <div class="p-6 flex-grow -mt-6 bg-white rounded-t-3xl relative z-10">
-                <div class="flex justify-between items-end mb-4">
-                    <h1 id="pet-name" class="text-4xl font-extrabold text-gray-900">Name</h1>
-                </div>
+            <!-- RIGHT COLUMN: Interactive Geolocation Banners, Action Buttons, and Pet Details -->
+            <div class="md:col-span-7 flex flex-col gap-6">
                 
-                <div class="bg-indigo-50 rounded-xl p-4 mb-6">
-                    <h3 class="text-sm font-bold text-indigo-800 uppercase mb-1">Public Notes</h3>
-                    <p id="pet-notes" class="text-gray-700">No special notes provided.</p>
+                <!-- Gated Geolocation Banner: NOTIFY OWNER -->
+                <div id="notify-section" class="bg-white border border-gray-100 rounded-3xl p-6 custom-shadow text-center">
+                    <div class="w-12 h-12 bg-indigo-50 text-[#0047CC] rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-6 h-6 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Did you find this pet?</h3>
+                    <p class="text-gray-500 text-sm mb-6 max-w-sm mx-auto">Tap below to notify the owner. Tapping will share your coordinates to guide them directly to this spot.</p>
+                    <button id="notify-btn" class="w-full bg-[#0047CC] hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-2xl shadow-lg shadow-blue-200 transition duration-300 flex items-center justify-center gap-2 text-lg">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        Notify Owner I Found Them!
+                    </button>
                 </div>
 
-                <p class="text-center text-gray-500 text-sm mb-6">
-                    If you found this pet, please tap the button below. The owner will instantly receive a notification with your intent to help.
-                </p>
+                <!-- Gated Geolocation Banner: LOCATION SHARED -->
+                <div id="location-shared-section" class="hidden flex flex-col gap-4">
+                    <!-- Banner -->
+                    <div class="bg-emerald-50 border border-emerald-100 rounded-3xl p-5 flex items-start gap-4">
+                        <div class="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <div>
+                            <h4 class="text-base font-bold text-emerald-950">Location Shared</h4>
+                            <p id="location-msg" class="text-sm text-emerald-800 mt-1 font-medium leading-relaxed">Your current location has been shared with the owner to help bring them home.</p>
+                        </div>
+                    </div>
 
-                <!-- Action Button -->
-                <button id="notify-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition duration-300 flex items-center justify-center">
-                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                    Notify Owner I Found Them!
+                    <!-- Owner Action Buttons -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <a id="btn-call-owner" href="#" class="w-full bg-[#FF7A1A] hover:bg-orange-600 text-white font-bold py-4 px-6 rounded-2xl shadow-lg shadow-orange-100 transition duration-300 flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                            Call Owner
+                        </a>
+                        <button id="btn-message-owner" class="w-full bg-[#0047CC] hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-2xl shadow-lg shadow-blue-100 transition duration-300 flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+                            Message Owner
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Card 1: Pet Details Grid -->
+                <div class="bg-white border border-gray-100 rounded-3xl p-6 custom-shadow">
+                    <div class="flex items-center gap-2.5 mb-6 text-gray-800">
+                        <div class="w-8 h-8 bg-indigo-50 text-[#0047CC] rounded-xl flex items-center justify-center">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                        </div>
+                        <h3 class="font-extrabold text-lg tracking-tight">Pet Details</h3>
+                    </div>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="bg-gray-50/50 rounded-2xl p-4 border border-gray-100/50">
+                            <p class="text-xs text-gray-400 font-bold uppercase tracking-wider">Breed</p>
+                            <p id="pet-breed" class="font-bold text-gray-800 mt-1.5 text-base sm:text-lg">Unknown</p>
+                        </div>
+                        <div class="bg-gray-50/50 rounded-2xl p-4 border border-gray-100/50">
+                            <p class="text-xs text-gray-400 font-bold uppercase tracking-wider">Age</p>
+                            <p id="pet-age" class="font-bold text-gray-800 mt-1.5 text-base sm:text-lg">Unknown</p>
+                        </div>
+                        <div class="bg-gray-50/50 rounded-2xl p-4 border border-gray-100/50">
+                            <p class="text-xs text-gray-400 font-bold uppercase tracking-wider">Gender</p>
+                            <p id="pet-gender" class="font-bold text-gray-800 mt-1.5 text-base sm:text-lg">Unknown</p>
+                        </div>
+                        <div class="bg-gray-50/50 rounded-2xl p-4 border border-gray-100/50">
+                            <p class="text-xs text-gray-400 font-bold uppercase tracking-wider">Weight</p>
+                            <p id="pet-weight" class="font-bold text-gray-800 mt-1.5 text-base sm:text-lg">Unknown</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Medical & Behavior -->
+                <div class="bg-white border border-gray-100 rounded-3xl p-6 custom-shadow">
+                    <div class="flex items-center gap-2.5 mb-5 text-gray-800">
+                        <div class="w-8 h-8 bg-red-50 text-red-500 rounded-xl flex items-center justify-center">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 10.5V20a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-9.5M3 7h18m-3-4v4M6 3v4m3-4h6"></path></svg>
+                        </div>
+                        <h3 class="font-extrabold text-lg tracking-tight">Medical & Behavior</h3>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex items-start gap-3 bg-red-50/20 border border-red-50/50 rounded-2xl p-4">
+                            <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                            <div>
+                                <h4 class="text-sm font-bold text-red-950">Medical Notes</h4>
+                                <p id="pet-notes" class="text-sm text-red-900 mt-1 font-medium leading-relaxed">No medical notes registered.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3 bg-blue-50/20 border border-blue-50/50 rounded-2xl p-4">
+                            <svg class="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <div>
+                                <h4 class="text-sm font-bold text-blue-950">Quirks & Markings</h4>
+                                <p id="pet-behavior" class="text-sm text-blue-900 mt-1 font-medium leading-relaxed">No special markings or behavior listed.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Owner Card (Visible only on mobile/tablet widths) -->
+                <div class="owner-info-card flex md:hidden bg-white border border-gray-100 rounded-3xl p-5 custom-shadow items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 rounded-full bg-gray-100 overflow-hidden border border-gray-200 flex-shrink-0">
+                            <img src="" alt="Owner" class="owner-photo w-full h-full object-cover hidden">
+                            <svg class="owner-no-photo w-full h-full text-gray-400 p-2.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                        </div>
+                        <div>
+                            <h4 class="owner-name font-bold text-gray-900 text-lg">Loading...</h4>
+                            <p class="text-xs text-gray-500 font-semibold tracking-wide uppercase">Primary Owner</p>
+                        </div>
+                    </div>
+                    <a href="#" class="btn-call-owner-icon w-12 h-12 rounded-2xl bg-gray-50 hover:bg-gray-100 border border-gray-100 flex items-center justify-center text-[#0047CC] transition shadow-sm">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                    </a>
+                </div>
+
+                <!-- Footer -->
+                <footer class="text-center py-6 mt-6 border-t border-gray-100">
+                    <h2 class="text-[#0047CC] font-black text-2xl tracking-tighter">PawTrace</h2>
+                    <p class="text-xs text-gray-400 mt-2 font-medium">&copy; 2024 PawFinders Search & Rescue. Helping every pet find their way home.</p>
+                    <div class="flex justify-center gap-6 mt-4 text-xs font-semibold text-gray-400">
+                        <a href="#" class="hover:text-gray-600 transition">Emergency Support</a>
+                        <a href="#" class="hover:text-gray-600 transition">Privacy Policy</a>
+                        <a href="#" class="hover:text-gray-600 transition">Terms of Service</a>
+                        <a href="#" class="hover:text-gray-600 transition">Contact Us</a>
+                    </div>
+                </footer>
+            </div>
+        </div>
+    </main>
+
+    <!-- Premium Direct Chat Mockup Modal -->
+    <div id="chat-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl flex flex-col h-[520px] max-h-[85vh] animate-in fade-in zoom-in-95 duration-200">
+            <!-- Modal Header -->
+            <div class="bg-gradient-to-r from-blue-700 to-indigo-800 p-4 text-white flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-white/20 overflow-hidden border border-white/10 flex-shrink-0">
+                        <img src="" alt="Owner" class="owner-photo w-full h-full object-cover hidden">
+                        <svg class="owner-no-photo w-full h-full text-white/80 p-2" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    </div>
+                    <div>
+                        <h4 class="owner-name font-bold text-sm">Loading...</h4>
+                        <div class="flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-green-400"></span>
+                            <span class="text-[10px] text-white/80 font-semibold uppercase tracking-wider">Online</span>
+                        </div>
+                    </div>
+                </div>
+                <button id="btn-close-chat" class="text-white/80 hover:text-white transition p-1 hover:bg-white/10 rounded-lg">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
+            </div>
 
-                <!-- Success Message -->
-                <div id="success-msg" class="hidden mt-4 p-4 bg-green-100 text-green-800 rounded-xl text-center font-medium">
-                    Owner has been notified! Please stay with the pet.
+            <!-- Messages Body -->
+            <div id="chat-messages" class="flex-grow p-4 overflow-y-auto bg-slate-50 flex flex-col gap-3">
+                <!-- Welcome/Status text -->
+                <div class="text-center my-2">
+                    <span class="text-[10px] bg-slate-200/60 text-slate-500 font-bold px-3 py-1 rounded-full uppercase tracking-wider">Connection Secure</span>
                 </div>
+
+                <!-- Initial Owner Message -->
+                <div class="flex items-start gap-2.5 max-w-[85%]">
+                    <div class="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
+                        <img src="" alt="Owner" class="owner-photo w-full h-full object-cover hidden">
+                        <svg class="owner-no-photo w-full h-full text-gray-400 p-1.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    </div>
+                    <div class="bg-white border border-gray-100 rounded-2xl rounded-tl-none p-3 shadow-sm text-sm text-slate-800 leading-relaxed font-medium">
+                        <p>Hello! Thank you so much for scanning the tag. Did you find my pet? Where are they now?</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Message Input Area -->
+            <div class="p-3 bg-white border-t border-gray-100 flex items-center gap-2">
+                <input id="chat-input" type="text" placeholder="Type a message..." class="flex-grow bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-600 transition">
+                <button id="btn-send-message" class="w-10 h-10 bg-[#0047CC] hover:bg-blue-700 text-white rounded-xl flex items-center justify-center transition flex-shrink-0 shadow-md shadow-blue-100">
+                    <svg class="w-5 h-5 rotate-90" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                </button>
             </div>
         </div>
     </div>
 
     <!-- Scripts -->
-    <script src="js/supabase.js"></script>
-    <script src="js/app.js"></script>
+    <script src="js/supabase.js?v=3"></script>
+    <script src="js/app.js?v=3"></script>
 </body>
 </html>
