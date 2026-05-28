@@ -66,6 +66,19 @@ WITH CHECK (
     )
 );
 
+-- DELETE: Only owner can delete conversation (e.g. resolve it)
+CREATE POLICY "Owners can delete conversations" 
+ON public.conversations FOR DELETE 
+USING (
+    auth.uid() = (
+        SELECT p.owner_id 
+        FROM public.tags t 
+        JOIN public.pets p ON t.pet_id = p.id 
+        WHERE t.id = tag_id 
+        LIMIT 1
+    )
+);
+
 -- 4. Row Level Security Policies for messages
 -- SELECT:
 -- Finder can select messages belonging to their conversation
