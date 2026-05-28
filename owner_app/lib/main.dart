@@ -55,7 +55,7 @@ class FurParentApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: navigatorKey,
-      title: 'Fur Parent Bridge',
+      title: 'PawTrace',
       theme: AppTheme.lightTheme,
       home: const AuthGate(),
     );
